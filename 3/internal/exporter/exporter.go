@@ -2,50 +2,61 @@ package exporter
 
 import (
 	"bufio"
-	"log"
 	"os"
+	"regexp"
+	"strings"
 )
+
+var reg, _ = regexp.Compile("[^0-9]+")
 
 func ExportCSV() {
 	threads := 5
-	f, _ := os.Open("./src.txt")
+	srcFile, _ := os.Open("./src.txt")
+	dstFile, _ := os.OpenFile("./dst.txt", os.O_CREATE|os.O_WRONLY, os.ModePerm)
 
 	stringsToConvert := make(chan string)
 	noMoreStrings := make(chan bool)
 
 	for i := 0; i < threads; i++ {
-		go processStrings(stringsToConvert, noMoreStrings)
+		go processStrings(dstFile, stringsToConvert, noMoreStrings)
 	}
 
-	// readString(stringsToConvert, f)
-
-	scanner := bufio.NewScanner(f)
+	scanner := bufio.NewScanner(srcFile)
 	for scanner.Scan() {
 		stringsToConvert <- scanner.Text()
 	}
-	// close(stringsToConvert)
 
 	for i := 0; i < threads; i++ {
 		noMoreStrings <- true
 	}
 
-	f.Close()
+	dstFile.Sync()
+
+	srcFile.Close()
+	dstFile.Close()
 }
 
-func readString(stringsToConvert chan string, f *os.File) {
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		stringsToConvert <- scanner.Text()
-	}
-	close(stringsToConvert)
-}
-
-func processStrings(stringsToConvert chan string, noMoreStrings chan bool) {
+func processStrings(dstFile *os.File, stringsToConvert chan string, noMoreStrings chan bool) {
 loop:
 	for true {
 		select {
 		case s := <-stringsToConvert:
-			log.Println(s)
+			s = strings.Trim(s, "[DWH] [\\")
+			words := strings.FieldsFunc(s, func(r rune) bool {
+				return r == '@' || r == '|'
+			})
+			words[5] = reg.ReplaceAllString(words[5], "")
+
+			var finalStr string
+			for idx, word := range words {
+				if idx != len(words)-1 {
+					finalStr += "\"" + word + "\","
+				} else {
+					finalStr += "\"" + word + "\"\n"
+				}
+			}
+
+			dstFile.WriteString(finalStr)
 
 		case <-noMoreStrings:
 			break loop
