@@ -1,10 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"os"
 	"regexp"
 	"strings"
+
+	"dwh/internal/exporter"
 )
 
 var reg, _ = regexp.Compile("[^0-9]+")
@@ -30,20 +31,20 @@ func csv(dstFile *os.File, str string) {
 
 func main() {
 	//	fill.Populate()
-	// exporter.ExportCSV()
+	exporter.ExportCSV()
 
-	srcFile, _ := os.Open("./src.txt")
-	dstFile, _ := os.OpenFile("./dst.txt", os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	// srcFile, _ := os.Open("./src.txt")
+	// dstFile, _ := os.OpenFile("./dst.txt", os.O_CREATE|os.O_WRONLY, os.ModePerm)
 
-	scanner := bufio.NewScanner(srcFile)
-	for scanner.Scan() {
-		str := scanner.Text()
-		csv(dstFile, str)
-	}
+	// scanner := bufio.NewScanner(srcFile)
+	// for scanner.Scan() {
+	// 	str := scanner.Text()
+	// 	csv(dstFile, str)
+	// }
 
-	dstFile.Sync()
-	defer srcFile.Close()
-	defer dstFile.Close()
+	// dstFile.Sync()
+	// defer srcFile.Close()
+	// defer dstFile.Close()
 
 	return
 }
