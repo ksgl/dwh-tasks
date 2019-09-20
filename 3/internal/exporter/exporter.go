@@ -18,7 +18,7 @@ func ExportCSV() {
 	noMoreStrings := make(chan bool)
 
 	for i := 0; i < threads; i++ {
-		go processStrings(dstFile, stringsToConvert, noMoreStrings)
+		go processString(dstFile, stringsToConvert, noMoreStrings)
 	}
 
 	scanner := bufio.NewScanner(srcFile)
@@ -36,7 +36,7 @@ func ExportCSV() {
 	dstFile.Close()
 }
 
-func processStrings(dstFile *os.File, stringsToConvert chan string, noMoreStrings chan bool) {
+func processString(dstFile *os.File, stringsToConvert chan string, noMoreStrings chan bool) {
 loop:
 	for true {
 		select {
